@@ -1,0 +1,39 @@
+# Build artifacts
+build/
+
+# Runtime/profile outputs
+outputs/
+
+# LLVM and compiler-generated intermediates
+*.bc
+*.ll
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+
+# CMake files (if generated in source tree)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# OS/editor metadata
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
