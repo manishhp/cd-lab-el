@@ -1,46 +1,75 @@
+// File: runtime.c
+// Description: Runtime registry and reporting for instrumented profile counters.
+// Part of: LLVM Profiling Pass Project
+
+#include "runtime.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-// Structure to hold counter info
-struct Counter {
-    const char* name;
-    long long* value;
-};
+#define MAX_FUNCTIONS 4096
 
-// Array to store registered counters
-#define MAX_COUNTERS 100
-static struct Counter counters[MAX_COUNTERS];
-static int counter_count = 0;
+typedef struct {
+    const char *name;
+    int64_t *counter;
+} FuncEntry;
 
-// Function to register a counter
-void registerCounter(const char* name, long long* value) {
-    if (counter_count < MAX_COUNTERS) {
-        counters[counter_count].name = name;
-        counters[counter_count].value = value;
-        counter_count++;
+static FuncEntry registry[MAX_FUNCTIONS];
+static int registry_size = 0;
+
+void __profiler_register(const char *name, int64_t *counter) {
+    if (!name || !counter) {
+        return;
     }
+    if (registry_size >= MAX_FUNCTIONS) {
+        return;
+    }
+
+    registry[registry_size].name = name;
+    registry[registry_size].counter = counter;
+    registry_size++;
 }
 
-// Comparison function for qsort (descending order)
-int compare(const void* a, const void* b) {
-    long long va = *(*(struct Counter**)a)->value;
-    long long vb = *(*(struct Counter**)b)->value;
-    if (va > vb) return -1;
-    if (va < vb) return 1;
+static int compare_entries(const void *a, const void *b) {
+    const FuncEntry *ea = *(const FuncEntry *const *)a;
+    const FuncEntry *eb = *(const FuncEntry *const *)b;
+    int64_t va = *ea->counter;
+    int64_t vb = *eb->counter;
+
+    if (va > vb) {
+        return -1;
+    }
+    if (va < vb) {
+        return 1;
+    }
     return 0;
 }
 
-// Function to dump profile data
-void dumpProfile() {
-    // Sort counters by frequency (descending)
-    struct Counter* sorted[MAX_COUNTERS];
-    for (int i = 0; i < counter_count; i++) {
-        sorted[i] = &counters[i];
-    }
-    qsort(sorted, counter_count, sizeof(struct Counter*), compare);
+void dumpProfile(void) {
+    FuncEntry *sorted[MAX_FUNCTIONS];
+    int visible = 0;
 
-    printf("Function call counts (sorted by frequency):\n");
-    for (int i = 0; i < counter_count; i++) {
-        printf("%s: %lld\n", sorted[i]->name, *sorted[i]->value);
+    for (int i = 0; i < registry_size; ++i) {
+        if (*registry[i].counter > 0) {
+            sorted[visible++] = &registry[i];
+        }
     }
+
+    qsort(sorted, (size_t)visible, sizeof(FuncEntry *), compare_entries);
+
+    int top_n = visible;
+    const char *top_n_env = getenv("PROFILER_TOP_N");
+    if (top_n_env) {
+        int parsed = atoi(top_n_env);
+        if (parsed > 0 && parsed < top_n) {
+            top_n = parsed;
+        }
+    }
+
+    printf("=== Profile Report ===\n");
+    printf("Rank  Count       Function\n");
+    for (int i = 0; i < top_n; ++i) {
+        printf("%4d  %-10lld %s\n", i + 1, (long long)*sorted[i]->counter, sorted[i]->name);
+    }
+    printf("=====================\n");
 }
