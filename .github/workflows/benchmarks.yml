@@ -1,0 +1,50 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  profile-benchmarks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LLVM and build tools
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            clang llvm llvm-dev cmake build-essential
+
+      - name: Build pass plugin and runtime
+        run: bash build.sh
+
+      - name: Profile sort_bench (quicksort + mergesort, 1M integers)
+        run: |
+          bash run.sh benchmarks/sort_bench.c outputs/sort_bench_profile.txt
+          echo "=== sort_bench profile ==="
+          cat outputs/sort_bench_profile.txt
+          # partition or merge must appear in top 2
+          top2=$(awk '/^[[:space:]]*[12][[:space:]]/' outputs/sort_bench_profile.txt)
+          echo "$top2" | grep -qE "partition|merge" || \
+            (echo "FAIL: expected partition or merge in top 2" && exit 1)
+
+      - name: Profile matmul (naive O(n^3), 512x512)
+        run: |
+          bash run.sh benchmarks/matmul.c outputs/matmul_profile.txt
+          echo "=== matmul profile ==="
+          cat outputs/matmul_profile.txt
+          # matmul must be rank 1
+          awk '/^[[:space:]]*1[[:space:]]/ { if ($3 == "matmul") exit 0; exit 1 }' \
+            outputs/matmul_profile.txt || \
+            (echo "FAIL: expected matmul at rank 1" && exit 1)
+
+      - name: Upload benchmark profiles
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-profiles-${{ github.sha }}
+          path: |
+            outputs/sort_bench_profile.txt
+            outputs/matmul_profile.txt

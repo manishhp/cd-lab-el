@@ -1,0 +1,40 @@
+name: Evaluate
+
+on:
+  workflow_dispatch:
+    inputs:
+      iterations:
+        description: "Timing iterations per test"
+        required: false
+        default: "100"
+
+jobs:
+  baseline-vs-instrumented:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LLVM and build tools
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            clang llvm llvm-dev cmake build-essential
+
+      - name: Build pass plugin and runtime
+        run: bash build.sh
+
+      - name: Run baseline-vs-instrumented evaluation
+        env:
+          ITERATIONS: ${{ github.event.inputs.iterations }}
+        run: |
+          bash scripts/evaluate.sh
+
+      - name: Print summary
+        run: cat outputs/eval/summary.csv
+
+      - name: Upload evaluation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-${{ github.run_id }}
+          path: outputs/eval/
