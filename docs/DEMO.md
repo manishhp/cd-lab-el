@@ -54,8 +54,8 @@ If your course requires visual media files, add:
 
 Recommended file names:
 
-- `demo-working.mp4`
-- `demo-failure.mp4`
+- `demo-working.png`
+- `demo-failure.png`
 
 Or screenshot alternatives:
 
@@ -68,13 +68,13 @@ Use one of the following styles.
 
 ### Style A: Files Inside Repository
 
-- Working demo: media/demo-working.mp4
-- Failure demo: media/demo-failure.mp4
+- Working demo: media/demo-working.png
+- Failure demo: media/demo-failure.png
 
 ### Style B: External Links (Drive/YouTube Unlisted)
 
-- Working demo: REPLACE_WITH_WORKING_DEMO_LINK
-- Failure demo: REPLACE_WITH_FAILURE_DEMO_LINK
+- Working demo: media/demo-working.png
+- Failure demo: media/demo-failure.png
 
 ## Recording Checklist
 

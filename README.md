@@ -361,3 +361,8 @@ PROFILER_TOP_N=5 ./your_binary
 | `IMPLEMENTATION.md` | LLVM pass internals, IR transformations, runtime details |
 | `EVALUATION.md` | Timing results, test case analysis, perf comparison discussion |
 | `EXPLANATION.md` | Consolidated end-to-end technical write-up |
+
+## Demo Evidence
+
+- Working demo screenshot: media/demo-working.png
+- Failure demo screenshot: media/demo-failure.png
