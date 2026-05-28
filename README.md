@@ -69,10 +69,14 @@ The pass is a **module pass** (new pass manager, `PassInfoMixin`) so it can see 
 ├── build.sh                   ← builds plugin + runtime
 ├── run.sh                     ← instruments and runs a single C source file
 ├── CMakeLists.txt
+├── DEMO.md
 ├── DESIGN.md
 ├── IMPLEMENTATION.md
 ├── EVALUATION.md
-└── EXPLANATION.md             ← consolidated technical write-up
+├── EXPLANATION.md             ← consolidated technical write-up
+└── media/
+    ├── demo-working.png
+    └── demo-failure.png
 ```
 
 ---
@@ -225,7 +229,7 @@ Overhead ranges from ~0.90x to ~1.28x. Values below 1x (tests 2, 3) are measurem
 The counter for a function = **function-entry invocations + loop-header crossings**.
 
 - `test4` recursive with depth 5: `recursive` called 6 times (1 + 5 recursive steps) ✓  
-- `test5` `loop_func` called 5 times, each with a 10-iteration loop: 5 × (1 entry + 10 loop headers) = 55... wait — the entry block and loop header are separate, so 5 calls × 1 entry + 5 calls × 10 loop iterations = 5 + 50 + 5 (`main` loop) = **60** ✓
+- `test5` `loop_func` called 5 times, each with a 10-iteration loop: 5 function entries + 50 loop-header hits + 5 hits from the `main` loop = **60** ✓
 
 ---
 
@@ -360,6 +364,7 @@ PROFILER_TOP_N=5 ./your_binary
 | `DESIGN.md` | Design goals, chosen architecture, alternatives considered |
 | `IMPLEMENTATION.md` | LLVM pass internals, IR transformations, runtime details |
 | `EVALUATION.md` | Timing results, test case analysis, perf comparison discussion |
+| `DEMO.md` | Demo procedure and working/failure evidence checklist |
 | `EXPLANATION.md` | Consolidated end-to-end technical write-up |
 
 ## Demo Evidence
