@@ -229,7 +229,7 @@ Overhead ranges from ~0.90x to ~1.28x. Values below 1x (tests 2, 3) are measurem
 The counter for a function = **function-entry invocations + loop-header crossings**.
 
 - `test4` recursive with depth 5: `recursive` called 6 times (1 + 5 recursive steps) ✓  
-- `test5` `loop_func` called 5 times, each with a 10-iteration loop: 5 function entries + 50 loop-header hits + 5 hits from the `main` loop = **60** ✓
+- `test5` `loop_func` called 5 times, each with a 10-iteration loop: 5 function entries + 55 loop-header hits (loop header crossed 11 times per call — 10 iterations + 1 exit check) = **60** ✓. `main` = 1 entry + 6 loop-header hits (5 iterations + 1 exit check) = **7** ✓
 
 ---
 

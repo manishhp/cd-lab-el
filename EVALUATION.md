@@ -4,7 +4,7 @@
 
 Evaluation compares baseline binaries versus instrumented binaries for all six provided test programs.
 
-- Baseline: `clang -O0 tests/testX.c -o /tmp/cd-lab-el/testX_base`
+- Baseline: `clang -O0 tests/testX.c -o /tmp/testX_base`
 - Instrumented: `bash run.sh tests/testX.c outputs/eval/testX_profile.txt`
 - Timing method: repeated execution loop (`ITERATIONS=500`, nanosecond wall-clock delta).
 - Automation script: `scripts/evaluate.sh`

@@ -37,3 +37,6 @@ compile_commands.json
 Thumbs.db
 .vscode/
 .idea/
+
+# Claude
+.claude/

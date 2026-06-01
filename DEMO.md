@@ -1,25 +1,38 @@
 # DEMO
 
-This document provides reproducible demo commands and captured outputs for both working and failure cases.
+This document describes the demo procedure and provides captured outputs for both working and failure cases.
 
-## Environment Used
+## Environment
 
-- Ubuntu on WSL2
-- LLVM/Clang/CMake toolchain installed via apt
+- Ubuntu 22.04 on WSL2
+- LLVM 18.1.3, Clang 18, CMake 3.28 (installed via apt)
 
-## Working Case Demo
+---
 
-### Command
+## Working Case
+
+### Step 1 — Build
+
+```bash
+bash build.sh
+```
+
+Expected output:
+```
+-- Found LLVM 18.1.3 at /usr/lib/llvm-18/lib/cmake/llvm
+[100%] Built target FunctionProfiler
+Build complete: pass plugin and runtime object are in <project-dir>/build
+```
+
+### Step 2 — Profile a recursive program
 
 ```bash
 bash run.sh tests/test4.c
 cat outputs/test4_profile.txt
 ```
 
-### Captured Output
-
-```text
-Profile saved to /mnt/d/RVCE/6th sem/CD/Lab/project/outputs/test4_profile.txt
+Expected output:
+```
 === Profile Report ===
 Rank  Count       Function
    1  6          recursive
@@ -27,64 +40,55 @@ Rank  Count       Function
 =====================
 ```
 
-This shows successful instrumentation and sorted profile dump with expected recursion count behavior.
+`recursive` is called 6 times (1 initial call + 5 recursive steps) — exactly correct.
 
-## Failure Case Demo
-
-### Command
+### Step 3 — Profile a sorting benchmark
 
 ```bash
-bash run.sh
+bash run.sh benchmarks/sort_bench.c outputs/sort_bench_profile.txt
+cat outputs/sort_bench_profile.txt
 ```
 
-### Captured Output
-
-```text
-Usage: run.sh <source.c> [output_profile.txt]
+Expected output:
+```
+=== Profile Report ===
+Rank  Count       Function
+   1  26773896   partition
+   2  23951420   merge
+   3  1999999    mergesort
+   4  1333663    quicksort
+   5  1000002    main
+   6  1000002    fill_random
+=====================
 ```
 
-This demonstrates input validation and controlled failure handling when required arguments are missing.
+### Screenshot
 
-## Optional Submission Media
+![Working case demo](media/demo-working.png)
 
-If your course requires visual media files, add:
+---
 
-1. A short screen recording for the working case.
-2. One screenshot/video segment for the failure case.
+## Failure Case
 
-Recommended file names:
+### Failure — Runtime Not Linked
 
-- `demo-working.png`
-- `demo-failure.png`
+Instrument the binary but deliberately skip linking `runtime.o`:
 
-Or screenshot alternatives:
+```bash
+clang -O0 -S -emit-llvm tests/test4.c -o /tmp/test4.ll
+opt -load-pass-plugin build/FunctionProfiler.so \
+    -passes="profiler-pass" /tmp/test4.ll -o /tmp/test4_inst.bc
+clang /tmp/test4_inst.bc -o /tmp/test4_fail
+```
 
-- `demo-working.png`
-- `demo-failure.png`
+Expected error:
+```
+/usr/bin/ld: error: undefined symbol: __profiler_register
+/usr/bin/ld: error: undefined symbol: dumpProfile
+```
 
-## Video Evidence Template (Fill Before Submission)
+The binary cannot link because the runtime is missing. Fix: add `build/runtime.o` to the link command.
 
-Use one of the following styles.
+### Screenshot
 
-### Style A: Files Inside Repository
-
-- Working demo: media/demo-working.png
-- Failure demo: media/demo-failure.png
-
-### Style B: External Links (Drive/YouTube Unlisted)
-
-- Working demo: media/demo-working.png
-- Failure demo: media/demo-failure.png
-
-## Recording Checklist
-
-For the working demo video, ensure the recording visibly includes:
-
-1. `bash build.sh`
-2. `bash run.sh tests/test4.c`
-3. `cat outputs/test4_profile.txt`
-
-For the failure demo video, ensure the recording visibly includes:
-
-1. `bash run.sh`
-2. Output: `Usage: run.sh <source.c> [output_profile.txt]`
+![Failure case demo](media/demo-failure.png)

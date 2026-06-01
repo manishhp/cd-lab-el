@@ -11,7 +11,9 @@ TMP_DIR="/tmp/cd-lab-el"
 SOURCE_FILE="$1"
 SOURCE_BASE="$(basename "$SOURCE_FILE" .c)"
 mkdir -p "$OUTPUT_DIR" "$TMP_DIR"
-"$ROOT_DIR/build.sh"
+if [ ! -f "$BUILD_DIR/FunctionProfiler.so" ] && [ ! -f "$BUILD_DIR/FunctionProfiler.dylib" ]; then
+    "$ROOT_DIR/build.sh"
+fi
 PASS_LIB="$BUILD_DIR/FunctionProfiler.so"
 if [ ! -f "$PASS_LIB" ]; then
     PASS_LIB="$BUILD_DIR/FunctionProfiler.dylib"
