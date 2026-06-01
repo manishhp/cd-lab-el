@@ -2,6 +2,8 @@
 
 This document describes the demo procedure and provides captured outputs for both working and failure cases.
 
+**Video demo:** [`DEMO.mp4`](DEMO.mp4)
+
 ## Environment
 
 - Ubuntu 22.04 on WSL2
@@ -70,24 +72,20 @@ Rank  Count       Function
 
 ## Failure Case
 
-### Failure — Runtime Not Linked
+### Failure — Pass Not Loaded
 
-Instrument the binary but deliberately skip linking `runtime.o`:
+Run `opt` without loading the plugin:
 
 ```bash
-clang -O0 -S -emit-llvm tests/test4.c -o /tmp/test4.ll
-opt -load-pass-plugin build/FunctionProfiler.so \
-    -passes="profiler-pass" /tmp/test4.ll -o /tmp/test4_inst.bc
-clang /tmp/test4_inst.bc -o /tmp/test4_fail
+clang -O0 -S -emit-llvm tests/test4.c -o /tmp/test4.ll && opt -passes="profiler-pass" /tmp/test4.ll -o /tmp/out.bc
 ```
 
 Expected error:
 ```
-/usr/bin/ld: error: undefined symbol: __profiler_register
-/usr/bin/ld: error: undefined symbol: dumpProfile
+opt: unknown pass name 'profiler-pass'
 ```
 
-The binary cannot link because the runtime is missing. Fix: add `build/runtime.o` to the link command.
+The pass is not built into `opt` — it must be loaded explicitly with `-load-pass-plugin`. Fix: add `-load-pass-plugin build/FunctionProfiler.so` to the `opt` command.
 
 ### Screenshot
 
